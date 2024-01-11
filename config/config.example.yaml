@@ -1,0 +1,19 @@
+AppVersion:
+
+Server:
+  Port: :
+  Development:
+  ReadTimeout:
+  WriteTimeout:
+
+Postgres:
+  Host:
+  Port:
+  User:
+  Password:
+  DbName:
+
+Redis:
+  Host:
+  Port:
+  Password:
