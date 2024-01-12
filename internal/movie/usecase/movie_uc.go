@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/zakariawahyu/go-api-movie/internal/domain"
 	"github.com/zakariawahyu/go-api-movie/internal/transport/request"
+	"github.com/zakariawahyu/go-api-movie/utils/response"
 	"time"
 )
 
@@ -60,7 +60,7 @@ func (u *movieUsecase) GetByID(ctx context.Context, id int64) (*domain.Movie, er
 	res, err := u.movieRepo.GetByID(c, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.New("movie not found")
+			return nil, response.ErrNotFound
 		}
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (u *movieUsecase) Update(ctx context.Context, req request.UpdateMovieReques
 	movie, err := u.movieRepo.GetByID(c, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.New("movie not found")
+			return nil, response.ErrNotFound
 		}
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (u *movieUsecase) Delete(ctx context.Context, id int64) error {
 	_, err := u.movieRepo.GetByID(c, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return errors.New("movie not found")
+			return response.ErrNotFound
 		}
 		return err
 	}

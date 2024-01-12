@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/zakariawahyu/go-api-movie/internal/domain"
 	"github.com/zakariawahyu/go-api-movie/internal/transport/request"
+	"github.com/zakariawahyu/go-api-movie/utils/response"
 	"net/http"
 	"strconv"
 )
@@ -31,10 +32,10 @@ func (h *movieHandler) Fetch(c echo.Context) error {
 
 	res, err := h.movieUsecase.Fetch(ctx)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		panic(err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": res})
+	return c.JSON(http.StatusOK, response.NewSuccessResponse(res))
 }
 
 func (h *movieHandler) GetByID(c echo.Context) error {
@@ -42,15 +43,15 @@ func (h *movieHandler) GetByID(c echo.Context) error {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err.Error())
+		panic(err)
 	}
 
-	movie, err := h.movieUsecase.GetByID(ctx, int64(id))
+	res, err := h.movieUsecase.GetByID(ctx, int64(id))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		panic(err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": movie})
+	return c.JSON(http.StatusOK, response.NewSuccessResponse(res))
 }
 
 func (h *movieHandler) Create(c echo.Context) error {
@@ -59,20 +60,20 @@ func (h *movieHandler) Create(c echo.Context) error {
 	req := request.CreateMovieRequest{}
 
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, err)
+		panic(err)
 	}
 
 	if err := req.Validate(); err != nil {
 		errVal := err.(validation.Errors)
-		return c.JSON(http.StatusBadRequest, errVal)
+		panic(errVal)
 	}
 
-	movie, err := h.movieUsecase.Create(ctx, req)
+	res, err := h.movieUsecase.Create(ctx, req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		panic(err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": movie})
+	return c.JSON(http.StatusOK, response.NewSuccessResponse(res))
 }
 
 func (h *movieHandler) Update(c echo.Context) error {
@@ -82,20 +83,20 @@ func (h *movieHandler) Update(c echo.Context) error {
 	req := request.UpdateMovieRequest{}
 
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, err.Error())
+		panic(err)
 	}
 
 	if err := req.Validate(); err != nil {
 		errVal := err.(validation.Errors)
-		return c.JSON(http.StatusBadRequest, errVal)
+		panic(errVal)
 	}
 
-	movie, err := h.movieUsecase.Update(ctx, req, int64(id))
+	res, err := h.movieUsecase.Update(ctx, req, int64(id))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		panic(err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{"data": movie})
+	return c.JSON(http.StatusOK, response.NewSuccessResponse(res))
 }
 
 func (h *movieHandler) Delete(c echo.Context) error {
@@ -103,14 +104,12 @@ func (h *movieHandler) Delete(c echo.Context) error {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err.Error())
+		panic(err)
 	}
 
 	if err := h.movieUsecase.Delete(ctx, int64(id)); err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		panic(err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "todo deleted",
-	})
+	return c.JSON(http.StatusOK, response.NewSuccessResponse(echo.Map{"message": "movie deleted"}))
 }
