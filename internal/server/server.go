@@ -35,13 +35,12 @@ func (s *server) Run() error {
 	movieRepo := pgsql.NewMovieRepositoryPgsql(db)
 	redisRepo := redisRepo.NewMovieRepositoryRedis(redis)
 
-	ctxTimeout := time.Duration(s.cfg.Server.ReadTimeout) * time.Second
-	movieUsecase := usecase.NewMovieUsecase(movieRepo, redisRepo, ctxTimeout)
+	movieUsecase := usecase.NewMovieUsecase(movieRepo, redisRepo, s.cfg.Server.ReadTimeout*time.Second)
 
 	v1.NewMovieHandler(s.echo, movieUsecase)
 
 	if err := s.runHttpServer(); err != nil {
-		s.echo.Logger.Errorf(" err run httpserver: %v", err)
+		s.echo.Logger.Errorf("err run httpserver: %v", err)
 	}
 
 	return nil

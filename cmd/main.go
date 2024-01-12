@@ -1,17 +1,18 @@
 package main
 
 import (
+	"github.com/labstack/echo/v4"
 	"github.com/zakariawahyu/go-api-movie/config"
 	"github.com/zakariawahyu/go-api-movie/internal/server"
-	"log"
 )
 
 func main() {
+	e := echo.New()
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		e.Logger.Fatalf("err config : %v", err)
 	}
 
 	s := server.NewHttpServer(cfg)
-	log.Fatal(s.Run())
+	e.Logger.Fatal(s.Run())
 }

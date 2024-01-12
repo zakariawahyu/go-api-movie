@@ -2,9 +2,9 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	"github.com/zakariawahyu/go-api-movie/internal/domain"
 	"github.com/zakariawahyu/go-api-movie/internal/transport/request"
 	"time"
@@ -57,7 +57,7 @@ func (u *movieUsecase) GetByID(ctx context.Context, id int64) (*domain.Movie, er
 
 	res, err := u.movieRepo.GetByID(c, id)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == sql.ErrNoRows {
 			return nil, errors.New("movie not found")
 		}
 		return nil, err
@@ -103,7 +103,7 @@ func (u *movieUsecase) Update(ctx context.Context, req request.UpdateMovieReques
 
 	movie, err := u.movieRepo.GetByID(c, id)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == sql.ErrNoRows {
 			return nil, errors.New("movie not found")
 		}
 		return nil, err
@@ -134,7 +134,7 @@ func (u *movieUsecase) Delete(ctx context.Context, id int64) error {
 
 	_, err := u.movieRepo.GetByID(c, id)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == sql.ErrNoRows {
 			return errors.New("movie not found")
 		}
 		return err

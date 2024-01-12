@@ -1,27 +1,34 @@
 package db
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
-	"github.com/jackc/pgx/v5"
+	_ "github.com/lib/pq"
 	"github.com/zakariawahyu/go-api-movie/config"
 	"os"
+	"time"
 )
 
-func NewPostgresConnection(cfg *config.Config) (*pgx.Conn, error) {
-	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-		cfg.Postgres.User,
-		cfg.Postgres.Password,
+func NewPostgresConnection(cfg *config.Config) (*sql.DB, error) {
+	url := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		cfg.Postgres.Host,
 		cfg.Postgres.Port,
-		cfg.Postgres.DbName,
-	)
-
-	conn, err := pgx.Connect(context.Background(), url)
+		cfg.Postgres.User,
+		cfg.Postgres.Password,
+		cfg.Postgres.DbName)
+	db, err := sql.Open("postgres", url)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
+		_, err = fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		return nil, err
 	}
 
-	return conn, nil
+	if err = db.Ping(); err != nil {
+		return nil, err
+	}
+
+	db.SetConnMaxLifetime(time.Minute * 5)
+	db.SetMaxIdleConns(0)
+	db.SetMaxOpenConns(5)
+
+	return db, nil
 }

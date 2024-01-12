@@ -1,6 +1,7 @@
 package v1
 
 import (
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/labstack/echo/v4"
 	"github.com/zakariawahyu/go-api-movie/internal/domain"
 	"github.com/zakariawahyu/go-api-movie/internal/transport/request"
@@ -61,6 +62,11 @@ func (h *movieHandler) Create(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, err)
 	}
 
+	if err := req.Validate(); err != nil {
+		errVal := err.(validation.Errors)
+		return c.JSON(http.StatusBadRequest, errVal)
+	}
+
 	movie, err := h.movieUsecase.Create(ctx, req)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -77,6 +83,11 @@ func (h *movieHandler) Update(c echo.Context) error {
 
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, err.Error())
+	}
+
+	if err := req.Validate(); err != nil {
+		errVal := err.(validation.Errors)
+		return c.JSON(http.StatusBadRequest, errVal)
 	}
 
 	movie, err := h.movieUsecase.Update(ctx, req, int64(id))
