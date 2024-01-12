@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/zakariawahyu/go-api-movie/internal/domain"
@@ -28,9 +29,10 @@ func (u *movieUsecase) Fetch(ctx context.Context) ([]domain.Movie, error) {
 	c, cancel := context.WithTimeout(ctx, u.timeout)
 	defer cancel()
 
-	moviesRedis, err := u.redisRepo.GetFetch(c, "movies")
-	if moviesRedis != nil {
-		return moviesRedis, nil
+	movies := []domain.Movie{}
+	movieCached, _ := u.redisRepo.Get(ctx, "movies")
+	if err := json.Unmarshal([]byte(movieCached), &movies); err == nil {
+		return movies, err
 	}
 
 	res, err := u.movieRepo.Fetch(c)
@@ -38,11 +40,10 @@ func (u *movieUsecase) Fetch(ctx context.Context) ([]domain.Movie, error) {
 		return nil, err
 	}
 
-	err = u.redisRepo.SetFetch(c, "movies", 30, res)
-	if err != nil {
+	movieString, _ := json.Marshal(&res)
+	if err = u.redisRepo.Set(ctx, "movies", movieString, 30*time.Second); err != nil {
 		return nil, err
 	}
-
 	return res, nil
 }
 
@@ -50,9 +51,10 @@ func (u *movieUsecase) GetByID(ctx context.Context, id int64) (*domain.Movie, er
 	c, cancel := context.WithTimeout(ctx, u.timeout)
 	defer cancel()
 
-	movieRedis, err := u.redisRepo.Get(c, fmt.Sprintf("movie-%d", id))
-	if movieRedis != nil {
-		return movieRedis, nil
+	movie := &domain.Movie{}
+	todosCached, _ := u.redisRepo.Get(ctx, fmt.Sprintf("movie-%d", id))
+	if err := json.Unmarshal([]byte(todosCached), movie); err == nil {
+		return movie, err
 	}
 
 	res, err := u.movieRepo.GetByID(c, id)
@@ -63,8 +65,8 @@ func (u *movieUsecase) GetByID(ctx context.Context, id int64) (*domain.Movie, er
 		return nil, err
 	}
 
-	err = u.redisRepo.Set(c, fmt.Sprintf("movie-%d", id), 30, res)
-	if err != nil {
+	movieString, _ := json.Marshal(&res)
+	if err = u.redisRepo.Set(ctx, fmt.Sprintf("movie-%d", res.ID), movieString, 30*time.Second); err != nil {
 		return nil, err
 	}
 
@@ -89,8 +91,8 @@ func (u *movieUsecase) Create(ctx context.Context, req request.CreateMovieReques
 		return nil, err
 	}
 
-	err = u.redisRepo.Set(c, fmt.Sprintf("movie-%d", res.ID), 30, res)
-	if err != nil {
+	movieString, _ := json.Marshal(&res)
+	if err = u.redisRepo.Set(ctx, fmt.Sprintf("movie-%d", res.ID), movieString, 30*time.Second); err != nil {
 		return nil, err
 	}
 

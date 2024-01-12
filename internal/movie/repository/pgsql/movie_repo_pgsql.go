@@ -44,12 +44,20 @@ func (r *movieRepositoryPgsql) GetByID(ctx context.Context, id int64) (*domain.M
 	movie := &domain.Movie{}
 	query := "SELECT id, title, description, rating, image, created_at, updated_at FROM movies WHERE id = $1"
 	err := r.db.QueryRowContext(ctx, query, id).Scan(&movie.ID, &movie.Title, &movie.Description, &movie.Rating, &movie.Image, &movie.CreatedAt, &movie.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
 
 	return movie, err
 }
 func (r *movieRepositoryPgsql) Create(ctx context.Context, movie *domain.Movie) (*domain.Movie, error) {
-	query := "INSERT INTO movies (title, description, rating, image, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)"
-	_, err := r.db.ExecContext(ctx, query, movie.Title, movie.Description, movie.Rating, movie.Image, movie.CreatedAt, movie.UpdatedAt)
+	lasInsertID := 0
+	query := "INSERT INTO movies (title, description, rating, image, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
+	err := r.db.QueryRowContext(ctx, query, movie.Title, movie.Description, movie.Rating, movie.Image, movie.CreatedAt, movie.UpdatedAt).Scan(&lasInsertID)
+	if err != nil {
+		return nil, err
+	}
+	movie.ID = int64(lasInsertID)
 
 	return movie, err
 }

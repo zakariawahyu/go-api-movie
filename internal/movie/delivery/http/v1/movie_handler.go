@@ -42,12 +42,12 @@ func (h *movieHandler) GetByID(c echo.Context) error {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusNotFound, err.Error())
 	}
 
 	movie, err := h.movieUsecase.GetByID(ctx, int64(id))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{"data": movie})

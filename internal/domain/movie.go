@@ -26,10 +26,8 @@ type MovieRepositoryPgsql interface {
 
 type MovieRepositoryRedis interface {
 	Delete(ctx context.Context, key string) error
-	Set(ctx context.Context, key string, ttl int, movie *Movie) error
-	Get(ctx context.Context, key string) (*Movie, error)
-	SetFetch(ctx context.Context, key string, ttl int, movies []Movie) error
-	GetFetch(ctx context.Context, key string) ([]Movie, error)
+	Set(ctx context.Context, key string, value interface{}, exp time.Duration) error
+	Get(ctx context.Context, key string) (string, error)
 }
 
 type MovieUsecase interface {

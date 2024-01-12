@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/redis/go-redis/v9"
 	"github.com/zakariawahyu/go-api-movie/internal/domain"
 	"time"
@@ -26,56 +25,10 @@ func (r *movieRepositoryRedis) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
-func (r *movieRepositoryRedis) Set(ctx context.Context, key string, ttl int, movie *domain.Movie) error {
-	movieBytes, err := json.Marshal(&movie)
-	if err != nil {
-		return err
-	}
-
-	if err = r.redis.Set(ctx, key, movieBytes, time.Second*time.Duration(ttl)).Err(); err != nil {
-		return err
-	}
-
-	return nil
+func (r *movieRepositoryRedis) Set(ctx context.Context, key string, value interface{}, exp time.Duration) error {
+	return r.redis.Set(ctx, key, value, exp).Err()
 }
 
-func (r *movieRepositoryRedis) Get(ctx context.Context, key string) (*domain.Movie, error) {
-	movieBytes, err := r.redis.Get(ctx, key).Bytes()
-	if err != nil {
-		return nil, err
-	}
-
-	movie := &domain.Movie{}
-	if err = json.Unmarshal(movieBytes, movie); err != nil {
-		return nil, err
-	}
-
-	return movie, nil
-}
-
-func (r *movieRepositoryRedis) SetFetch(ctx context.Context, key string, ttl int, movies []domain.Movie) error {
-	movieBytes, err := json.Marshal(&movies)
-	if err != nil {
-		return err
-	}
-
-	if err = r.redis.Set(ctx, key, movieBytes, time.Second*time.Duration(ttl)).Err(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *movieRepositoryRedis) GetFetch(ctx context.Context, key string) ([]domain.Movie, error) {
-	movieBytes, err := r.redis.Get(ctx, key).Bytes()
-	if err != nil {
-		return nil, err
-	}
-
-	movie := []domain.Movie{}
-	if err = json.Unmarshal(movieBytes, &movie); err != nil {
-		return nil, err
-	}
-
-	return movie, nil
+func (r *movieRepositoryRedis) Get(ctx context.Context, key string) (string, error) {
+	return r.redis.Get(ctx, key).Result()
 }
