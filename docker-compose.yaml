@@ -1,0 +1,18 @@
+version: "3.5"
+services:
+  api-movie:
+    container_name: api-movie
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7070:7070"
+    working_dir: /app
+    volumes:
+      - ./:/app
+    networks:
+      - api_networks
+
+networks:
+  api_networks:
+    driver: bridge
